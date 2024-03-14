@@ -1,0 +1,14 @@
+[tool.poetry]
+authors = ["Arash Hatami <hatamiarash7@gmail.com>"]
+description = "Update blog using Telegram messages"
+name = "tg-blog-updater"
+readme = "README.md"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-telegram-bot = "^21.0.1"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
