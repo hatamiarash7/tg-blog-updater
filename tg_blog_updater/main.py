@@ -1,19 +1,21 @@
 import html
 import json
 import logging
-import traceback
 import re
+import traceback
 
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import (
     ApplicationBuilder,
+    CallbackContext,
     CommandHandler,
     ContextTypes,
     MessageHandler,
-    CallbackContext,
+    filters,
 )
-from telegram.ext import filters
-from telegram.constants import ParseMode
+
+from tg_blog_updater import utils
 
 # GITHUB_TOKEN = "YOUR_GITHUB_ACCESS_TOKEN"
 # GITHUB_REPO_NAME = "YOUR_GITHUB_USERNAME/YOUR_REPO_NAME"
@@ -31,9 +33,6 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
-
-TELEGRAM_TOKEN = ""
-DEBUG_ID = ""
 
 
 async def error_handler(
@@ -66,7 +65,7 @@ async def error_handler(
 
     # Finally, send the message
     await context.bot.send_message(
-        chat_id=DEBUG_ID,
+        chat_id=utils.get_env("DEBUG_CHAT_ID"),
         text=message,
         parse_mode=ParseMode.HTML,
     )
@@ -116,7 +115,12 @@ def create_post(title: str, body: str) -> None:
 
 
 def main() -> None:
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).base_url("").build()
+    app = (
+        ApplicationBuilder()
+        .token(utils.get_env("TELEGRAM_TOKEN"))
+        .base_url(utils.get_env("TELEGRAM_BASE_URL", "https://api.telegram.org/bot"))
+        .build()
+    )
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(
