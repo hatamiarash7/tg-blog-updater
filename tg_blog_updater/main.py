@@ -88,14 +88,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def handle_message(update: Update, context: CallbackContext) -> None:
     message = update.message.text
-    match = re.match(r"Title: (.+)\n===\n(.+)", message, re.DOTALL)
+    match = re.match(r"(.+)\n===\n(.+)", message, re.DOTALL)
     if match:
         title, body = match.groups()
         create_post(title, body)
         await update.message.reply_text("Post created successfully!")
     else:
         await update.message.reply_text(
-            "Invalid message format. Please use the format:\n\nTitle: Your Title\n===\nYour post content."
+            "Invalid message format. Please use the format:\n\nYour Title\n===\nYour post content."
         )
 
 
