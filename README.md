@@ -20,6 +20,9 @@ It's a simple Telegram bot to read messages and update a Jekyll blog.
     - `GITHUB_REPO_NAME`: The name of the repository with the format `username/repo`.
     - `POST_PATH`: The target path to create the new post. For Jekyll blogs, it is `_posts`.
 
+> [!TIP]
+> You can use `TELEGRAM_BASE_URL` environment variable to change the base URL of the Telegram API.
+
 ```bash
 docker run -d --name jekyll-telegram-bot \
     -e TELEGRAM_TOKEN=your-telegram-token \
@@ -52,6 +55,8 @@ jekyll,telegram,blog
 This is the content of the post
 ```
 
+
+> [!NOTE]
 > You should change the code if you want to use a different format.
 
 ---
