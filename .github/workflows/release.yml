@@ -50,10 +50,10 @@ jobs:
           push: true
           platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v6,linux/arm/v7
           build-args: |
-            APP_VERSION=${{ steps.slug.outputs.version }}"
+            APP_VERSION=v${{ steps.slug.outputs.version }}"
             DATE_CREATED=${{ steps.date.outputs.date }}
           tags: |
-            hatamiarash7/tg-blog-updater:${{ steps.slug.outputs.version }}
+            hatamiarash7/tg-blog-updater:v${{ steps.slug.outputs.version }}
             hatamiarash7/tg-blog-updater:latest
 
       - name: Run Trivy vulnerability scanner
