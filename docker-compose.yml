@@ -8,6 +8,6 @@ services:
       cache_from:
         - tg-blog-updater:*
       target: builder
-    image: hatamiarash7/tg-blog-updater:v1.0.0
+    image: hatamiarash7/tg-blog-updater:1.0.0
     env_file:
       - .env
