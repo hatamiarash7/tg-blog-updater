@@ -3,7 +3,9 @@ import json
 import logging
 import re
 import traceback
+from datetime import datetime
 
+from slugify import slugify
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -14,15 +16,17 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+from github import Github
+from github import Auth
 
 from tg_blog_updater import utils
 
-# GITHUB_TOKEN = "YOUR_GITHUB_ACCESS_TOKEN"
-# GITHUB_REPO_NAME = "YOUR_GITHUB_USERNAME/YOUR_REPO_NAME"
-
-# # Initialize GitHub client
-# # g = Github(GITHUB_TOKEN)
-# # repo = g.get_repo(GITHUB_REPO_NAME)
+github = Github(
+    auth=Auth.Token(
+        utils.get_env("GITHUB_TOKEN"),
+    ),
+)
+repo = github.get_repo(utils.get_env("GITHUB_REPO_NAME").lower())
 
 # Enable logging
 logging.basicConfig(
@@ -75,7 +79,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = (
         f"Hi {update.effective_user.first_name}!\n"
         "Send message with this format to update your blog:\n\n"
-        f"<pre>Title: Your Title\n===\nYour post content"
+        f"<pre>Your Title\n===\nYour tags ( Comma Separated )\n===\nYour post content"
         "</pre>"
     )
 
@@ -88,30 +92,35 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def handle_message(update: Update, context: CallbackContext) -> None:
     message = update.message.text
-    match = re.match(r"(.+)\n===\n(.+)", message, re.DOTALL)
+    match = re.match(r"(.+)\n===\n(.+)\n===\n(.+)", message, re.DOTALL)
     if match:
-        title, body = match.groups()
-        create_post(title, body)
+        title, tags, body = match.groups()
+        create_post(title, tags, body)
         await update.message.reply_text("Post created successfully!")
     else:
         await update.message.reply_text(
-            "Invalid message format. Please use the format:\n\nYour Title\n===\nYour post content."
+            "Invalid message format. Please use the format:\n\nYour Title\n===\nYour tags ( Comma Separated )\n===\nYour post content."
         )
 
 
-def create_post(title: str, body: str) -> None:
+def create_post(title: str, tags: str, body: str) -> None:
     # Format the title to be URL-friendly
-    filename = title.lower().replace(" ", "-") + ".md"
-    file_path = f"_posts/{filename}"
+    now = datetime.now()
+
+    filename = f"{now.strftime('%Y-%m-%d')}"
+    filename += f"-{slugify(text=title, lowercase=True, allow_unicode=False)}.md"
+    file_path = f"{utils.get_env('POST_PATH', '_posts')}/{filename}"
 
     # Create the post content
-    content = f"---\ntitle: {title}\n---\n\n{body}"
-
-    print(file_path)
-    print(content)
+    content = f"---\ntitle: {title}\ndate: {now.strftime('%Y-%m-%d %H:%M:%S')} +3:30\n"
+    content += f"tags: [{ ', '.join(tags.split('-')) }]\n---\n\n{body}"
 
     # Create a new file in the repository
-    # repo.create_file(file_path, f"Create new post: {title}", content)
+    result = repo.create_file(file_path, f"Create new post: {title}", content)
+    if result and result["commit"].sha:
+        logger.info(f"Post created successfully! - {result['commit'].sha}")
+    else:
+        logger.error(f"Failed to create post! - {filename}")
 
 
 def main() -> None:
