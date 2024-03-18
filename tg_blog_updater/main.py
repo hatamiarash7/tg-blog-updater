@@ -91,7 +91,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def handle_message(update: Update, context: CallbackContext) -> None:
-    if update.effective_chat.id != utils.get_env("CHAT_ID"):
+    if update.effective_chat.id != int(utils.get_env("CHAT_ID")):
+        logger.debug(f"Chat ID: {update.effective_chat.id} rejected")
         await update.message.reply_text(
             "This bot is only available to work in selected chats."
         )
