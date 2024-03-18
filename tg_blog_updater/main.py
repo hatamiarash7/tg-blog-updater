@@ -91,6 +91,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def handle_message(update: Update, context: CallbackContext) -> None:
+    if update.effective_chat.id != utils.get_env("CHAT_ID"):
+        await update.message.reply_text(
+            "This bot is only available to work in selected chats."
+        )
+        return
+
     message = update.message.text
     match = re.match(r"(.+)\n===\n(.+)\n===\n(.+)", message, re.DOTALL)
     if match:

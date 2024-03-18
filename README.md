@@ -15,6 +15,7 @@ It's a simple Telegram bot to read messages and update a Jekyll blog.
 2. Create a new Github token with `repo` scope.
 3. Run the bot using the following environment variables:
     - `TELEGRAM_TOKEN`: The token of your bot
+    - `CHAT_ID`: A chat id that the bot should listen to. It can be a group, channel or a direct chat.
     - `DEBUG_CHAT_ID`: A chat id to send debug messages (For example, you can get all errors in your private chat)
     - `GITHUB_TOKEN`: The token to access the Github API.
     - `GITHUB_REPO_NAME`: The name of the repository with the format `username/repo`.
@@ -26,6 +27,7 @@ It's a simple Telegram bot to read messages and update a Jekyll blog.
 ```bash
 docker run -d --name jekyll-telegram-bot \
     -e TELEGRAM_TOKEN=your-telegram-token \
+    -e CHAT_ID=your-chat-id \
     -e DEBUG_CHAT_ID=your-chat-id \
     -e GITHUB_TOKEN=your-github-token \
     -e GITHUB_REPO_NAME=your-username/your-repo \
