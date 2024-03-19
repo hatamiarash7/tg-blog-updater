@@ -16,12 +16,12 @@ python-slugify = {extras = ["unidecode"], version = "^8.0.4"}
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.0.0"
-pytest-asyncio = "^0.23.3"
+pytest-asyncio = "^0.23.6"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.0.0"
 pytest = "^8.0.0"
-pytest-asyncio = "^0.23.3"
+pytest-asyncio = "^0.23.6"
 isort = "^5.13.2"
 black = "^24.2.0"
 
