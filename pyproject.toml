@@ -23,7 +23,7 @@ pylint = "^3.0.0"
 pytest = "^8.0.0"
 pytest-asyncio = "^0.23.6"
 isort = "^5.13.2"
-black = "^24.2.0"
+black = "^24.4.2"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/hatamiarash7/tg-blog-updater/issues"
