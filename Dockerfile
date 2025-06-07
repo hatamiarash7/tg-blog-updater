@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.13.3-slim as builder
+FROM python:3.12-slim as builder
 
 ARG APP_VERSION="undefined@docker"
 
@@ -32,6 +32,10 @@ LABEL org.opencontainers.image.licenses="MIT"
 RUN apt update \
     && apt install --no-install-recommends -y \
     curl \
+    gcc \
+    libffi-dev \
+    libc6-dev \
+    build-essential \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
