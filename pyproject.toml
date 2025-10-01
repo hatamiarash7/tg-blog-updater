@@ -22,7 +22,7 @@ pytest-asyncio = "^0.26.0"
 pylint = "^3.0.0"
 pytest = "^8.0.0"
 pytest-asyncio = "^0.26.0"
-isort = "^5.13.2"
+isort = "^6.0.0"
 black = "^24.4.2"
 
 [tool.poetry.urls]
