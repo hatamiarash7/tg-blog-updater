@@ -32,7 +32,7 @@ docker run -d --name jekyll-telegram-bot \
     -e GITHUB_TOKEN=your-github-token \
     -e GITHUB_REPO_NAME=your-username/your-repo \
     -e POST_PATH=_posts \
-    hatamiarash7/tg-blog-updater:v1.0.1
+    hatamiarash7/tg-blog-updater:v1.2.0
 ```
 
 ## Message format

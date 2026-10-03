@@ -5,6 +5,7 @@ import re
 import traceback
 from datetime import datetime
 
+from github import Auth, Github
 from slugify import slugify
 from telegram import Update
 from telegram.constants import ParseMode
@@ -16,8 +17,6 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from github import Github
-from github import Auth
 
 from tg_blog_updater import utils
 
@@ -120,7 +119,7 @@ def create_post(title: str, tags: str, body: str) -> None:
 
     # Create the post content
     content = f"---\ntitle: {title}\ndate: {now.strftime('%Y-%m-%d %H:%M:%S')} +3:30\n"
-    content += f"tags: [{ ', '.join(tags.split('-')) }]\n---\n\n{body}"
+    content += f"tags: [{', '.join(tags.split('-'))}]\n---\n\n{body}"
 
     # Create a new file in the repository
     result = repo.create_file(file_path, f"Create new post: {title}", content)

@@ -1,7 +1,7 @@
 import os
 
 
-def get_env(key: str, default: str = None) -> str:
+def get_env(key: str, default: str | None = None) -> str:
     """Get environment variable
 
     Args:

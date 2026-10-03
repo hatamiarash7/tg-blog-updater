@@ -9,22 +9,22 @@ readme = "README.md"
 version = "0.1.0"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-python-telegram-bot = "^21.1.1"
 pygithub = "^2.2.0"
+python = "^3.10"
 python-slugify = {extras = ["unidecode"], version = "^9.0.0"}
+python-telegram-bot = "^21.1.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^9.0.0"
 pytest-asyncio = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
+black = "^26.0.0"
+flake8-pyproject = "^1.2.4"
+isort = "^9.0.0"
 pylint = "^4.0.0"
 pytest = "^9.0.0"
 pytest-asyncio = "^1.0.0"
-isort = "^9.0.0"
-black = "^26.0.0"
-flake8-pyproject = "^1.2.4"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/hatamiarash7/tg-blog-updater/issues"
