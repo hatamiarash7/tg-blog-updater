@@ -24,6 +24,7 @@ pytest = "^9.0.0"
 pytest-asyncio = "^1.0.0"
 isort = "^9.0.0"
 black = "^26.0.0"
+flake8-pyproject = "^1.2.4"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/hatamiarash7/tg-blog-updater/issues"
@@ -35,3 +36,6 @@ testpaths = ["tests"]
 [build-system]
 build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core"]
+
+[tool.flake8]
+ignore = ["E501"]
