@@ -1,18 +1,24 @@
-[tool.poetry]
-authors = ["Arash Hatami <hatamiarash7@gmail.com>"]
+[project]
+authors = [{name = "Arash Hatami", email = "hatamiarash7@gmail.com"}]
+dependencies = [
+  "pygithub (>=2.2.0,<3.0.0)",
+  "python-slugify[unidecode] (>=9.0.0,<10.0.0)",
+  "python-telegram-bot (>=21.1.1,<22.0.0)",
+]
 description = "Update blog using Telegram messages"
 name = "tg-blog-updater"
+readme = "README.md"
+requires-python = ">=3.10,<4.0"
+version = "1.2.0"
+
+[project.urls]
+"Bug Tracker" = "https://github.com/hatamiarash7/tg-blog-updater/issues"
+
+[tool.poetry]
 packages = [
   {include = "tg_blog_updater", from = "."},
 ]
-readme = "README.md"
-version = "0.1.0"
-
-[tool.poetry.dependencies]
-pygithub = "^2.2.0"
-python = "^3.10"
-python-slugify = {extras = ["unidecode"], version = "^9.0.0"}
-python-telegram-bot = "^21.1.1"
+requires-poetry = ">=2.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^9.0.0"
@@ -26,16 +32,24 @@ pylint = "^4.0.0"
 pytest = "^9.0.0"
 pytest-asyncio = "^1.0.0"
 
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/hatamiarash7/tg-blog-updater/issues"
-
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core"]
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.isort]
+known_first_party = ["tg_blog_updater"]
+line_length = 88
+profile = "black"
 
 [tool.flake8]
-ignore = ["E501"]
+exclude = [".venv", "dist", "build"]
+extend-ignore = ["E203", "W503"]
+max-line-length = 88
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=2.0.0"]

@@ -1,2 +1,11 @@
+[MAIN]
+ignore-paths=^.venv/.*,^dist/.*
+
+[FORMAT]
+max-line-length=88
+
 [MESSAGES CONTROL]
 disable=redefined-outer-name
+
+[DESIGN]
+max-args=6
