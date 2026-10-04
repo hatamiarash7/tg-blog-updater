@@ -1,3 +1,6 @@
-from tg_blog_updater import main as updater
+"""Run the bot with ``python -m tg_blog_updater``."""
 
-updater.main()
+from tg_blog_updater.main import main
+
+if __name__ == "__main__":
+    main()

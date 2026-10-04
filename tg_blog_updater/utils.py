@@ -1,22 +1,24 @@
+"""Process configuration loaded from the environment."""
+
 import os
 
 
+class MissingEnvironmentVariable(Exception):
+    """A required environment variable is missing or blank."""
+
+
 def get_env(key: str, default: str | None = None) -> str:
-    """Get environment variable
+    """Return an environment variable.
 
-    Args:
-        key (str): Environment variable name
-        default (str, optional): Default value if not found. Defaults to None.
-
-    Returns:
-        str: Environment variable value
+    Surrounding whitespace is removed. A missing or blank value raises
+    ``MissingEnvironmentVariable`` unless ``default`` is provided.
     """
 
-    if key in os.environ:
-        return os.environ[key]
+    value = os.environ.get(key)
+    if value is not None and value.strip():
+        return value.strip()
 
-    if default:
+    if default is not None:
         return default
 
-    # pylint: disable=W0719
-    raise Exception(f"Environment variable {key} not defined")
+    raise MissingEnvironmentVariable(f"Environment variable {key} not defined")
