@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pipx install poetry==2.4.3
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --with dev,test
+
+      - name: Lint
+        run: |
+          poetry run black --check tg_blog_updater tests
+          poetry run isort --check-only tg_blog_updater tests
+          poetry run flake8 tg_blog_updater tests
+          poetry run pylint tg_blog_updater tests --rcfile=.pylintrc
+
+      - name: Test
+        run: poetry run pytest

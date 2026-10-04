@@ -4,27 +4,27 @@ on:
   release:
     types: [published]
 
-jobs:
-  init:
-    name: 🚩 Initialize
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cancel previous workflow
-        uses: styfle/cancel-workflow-action@0.13.1
-        with:
-          access_token: ${{ github.token }}
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+  security-events: write
+
+jobs:
   docker:
-    name: 🐳 Build Docker image
-    runs-on: ubuntu-26.04
-    needs: init
+    name: Build Docker image
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Get repository info
-        uses: gacts/github-slug@v1
-        id: slug
+      - name: Set image timestamp
+        id: meta
+        run: echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v4
@@ -32,43 +32,43 @@ jobs:
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Login to Dockerhub
-        uses: docker/login-action@v4.6.0
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Get Current Date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-
-      - name: Build & Push Docker image
+      - name: Build and push
         uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile
           push: true
-          platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v6,linux/arm/v7
+          provenance: true
+          sbom: true
+          platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v7
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
-            APP_VERSION=v${{ steps.slug.outputs.version }}"
-            DATE_CREATED=${{ steps.date.outputs.date }}
+            APP_VERSION=${{ github.ref_name }}
+            DATE_CREATED=${{ steps.meta.outputs.created }}
           tags: |
-            hatamiarash7/tg-blog-updater:v${{ steps.slug.outputs.version }}
+            hatamiarash7/tg-blog-updater:${{ github.ref_name }}
             hatamiarash7/tg-blog-updater:latest
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+      - name: Scan image
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: hatamiarash7/tg-blog-updater:latest
+          image-ref: hatamiarash7/tg-blog-updater:${{ github.ref_name }}
           exit-code: "0"
           ignore-unfixed: true
-          vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
-          format: "template"
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          format: template
           template: "@/contrib/sarif.tpl"
-          output: "trivy-results.sarif"
+          output: trivy-results.sarif
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4.37.4
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: "trivy-results.sarif"
+          sarif_file: trivy-results.sarif
