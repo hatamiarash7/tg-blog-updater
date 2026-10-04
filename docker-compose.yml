@@ -1,13 +1,18 @@
-version: "3.9"
-name: tg-blog-updaater
+name: tg-blog-updater
+
 services:
   updater:
     build:
       context: .
       dockerfile: Dockerfile
-      cache_from:
-        - tg-blog-updater:*
-      target: builder
     image: hatamiarash7/tg-blog-updater:latest
     env_file:
       - .env
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -1,52 +1,60 @@
-FROM --platform=$BUILDPLATFORM python:3.14.8-slim AS builder
+# syntax=docker/dockerfile:1
 
-ARG APP_VERSION="undefined@docker"
+FROM python:3.14.8-slim AS builder
 
-ENV PYTHONDONTWRITEBYTECODE=true \
-    PYTHONFAULTHANDLER=true \
-    PYTHONUNBUFFERED=true \
-    PYTHONHASHSEED=random \
-    PYTHONPATH=/usr/lib/python3/dist-packages \
-    # pip
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100 \
-    # poetry
-    POETRY_NO_INTERACTION=true \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_VERSION=1.8.2 \
-    POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_CACHE_DIR='/var/cache/poetry' \
-    POETRY_HOME='/opt/poetry'
-
-LABEL org.opencontainers.image.title="tg-blog-updater"
-LABEL org.opencontainers.image.description="Update Jekyll blog using Telegram"
-LABEL org.opencontainers.image.url="https://github.com/hatamiarash7/tg-blog-updater"
-LABEL org.opencontainers.image.source="https://github.com/hatamiarash7/tg-blog-updater"
-LABEL org.opencontainers.image.vendor="hatamiarash7"
-LABEL org.opencontainers.image.author="hatamiarash7"
-LABEL org.opencontainers.version="$APP_VERSION"
-LABEL org.opencontainers.image.created="$DATE_CREATED"
-LABEL org.opencontainers.image.licenses="MIT"
-
-RUN apt update \
-    && apt install --no-install-recommends -y \
-    curl \
-    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VERSION=2.5.1
 
 WORKDIR /app
 
-RUN ls && curl -sSL https://install.python-poetry.org | python3 - && sleep 5
+RUN pip install --no-cache-dir \
+    "poetry==${POETRY_VERSION}" \
+    "poetry-plugin-export==1.10.1"
 
-ENV PATH="/opt/poetry/bin:$PATH"
+COPY pyproject.toml poetry.lock README.md ./
+COPY tg_blog_updater ./tg_blog_updater
 
-COPY ./pyproject.toml .
-COPY ./poetry.lock .
+RUN poetry export \
+    --only main \
+    --format requirements.txt \
+    --output requirements.txt \
+    --without-hashes \
+    && python -m venv /opt/venv \
+    && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt \
+    && poetry build --format wheel \
+    && /opt/venv/bin/pip install --no-cache-dir --no-deps dist/*.whl
 
-RUN poetry install --without dev,test --no-interaction --no-ansi
+FROM python:3.14.8-slim AS runtime
 
-COPY . .
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1 \
+    PATH="/opt/venv/bin:$PATH"
 
-RUN mkdir proc
+RUN groupadd --system --gid 1000 app \
+    && useradd --system --uid 1000 --gid app --home-dir /app --shell /usr/sbin/nologin app \
+    && mkdir /app \
+    && chown app:app /app
+
+COPY --from=builder --chown=app:app /opt/venv /opt/venv
+
+WORKDIR /app
+USER app
+
+ARG APP_VERSION=dev
+ARG DATE_CREATED=unknown
+
+LABEL org.opencontainers.image.title="tg-blog-updater" \
+    org.opencontainers.image.description="Update a Jekyll blog from Telegram messages" \
+    org.opencontainers.image.url="https://github.com/hatamiarash7/tg-blog-updater" \
+    org.opencontainers.image.source="https://github.com/hatamiarash7/tg-blog-updater" \
+    org.opencontainers.image.vendor="hatamiarash7" \
+    org.opencontainers.image.authors="hatamiarash7" \
+    org.opencontainers.image.version="${APP_VERSION}" \
+    org.opencontainers.image.created="${DATE_CREATED}" \
+    org.opencontainers.image.licenses="MIT"
 
 CMD ["python", "-m", "tg_blog_updater"]
