@@ -4,34 +4,37 @@ Telegram long-polling bot that turns a `title / === / tags / === / body` message
 
 ## Architecture
 
-First-party code is only `tg_blog_updater/`:
+First-party code is `tg_blog_updater/`:
 
 - `__main__.py` — `python -m tg_blog_updater` entry
-- `main.py` — handlers, post creation, polling
+- `main.py` — handlers, GitHub commit, polling
+- `posts.py` — message parsing and Jekyll rendering
 - `utils.py` — `get_env()` for every config value
 
-`main.py` builds the PyGithub client and calls `get_repo()` at import time. `GITHUB_TOKEN` and `GITHUB_REPO_NAME` must be set before that module is imported, including from tests.
+`get_repository()` builds the PyGithub client on first use and caches it. `main()` calls it before polling so a bad token fails at startup. Importing the package does not require credentials.
 
-`handle_message` is async and calls synchronous `create_post`, so GitHub I/O runs on the event loop. There is no local database; GitHub is the source of truth.
+`handle_message` runs `create_post` with `asyncio.to_thread`, so GitHub I/O does not block the event loop. There is no local database; GitHub is the source of truth.
 
 ## Build and Test
 
 Poetry keeps the virtualenv in-project (`poetry.toml`).
 
 - `make dev` — install runtime, dev, and test groups
+- `make install` — runtime dependencies only
 - `make run` — `poetry run python -m tg_blog_updater`
-- `make lint` — pylint with `.pylintrc` (the only lint target)
-- `make test` — `poetry run pytest` (`testpaths = tests`; no `tests/` tree yet)
+- `make lint` — black, isort, flake8, and pylint (`.pylintrc`)
+- `make test` — `poetry run pytest` (`testpaths = tests`)
+- `make check` — lint and test
 
-Black, isort, and flake8 are dev dependencies and are not Makefile targets. Do not add a dotenv loader; the process reads the environment, and Compose injects `.env`.
+Do not add a dotenv loader; the process reads the environment, and Compose injects `.env`.
 
-The production image runs `poetry install --without dev,test` and `python -m tg_blog_updater`. [`.github/workflows/release.yml`](.github/workflows/release.yml) publishes that image and does not run lint or tests.
+The production image installs the locked main dependencies into a virtualenv and runs `python -m tg_blog_updater` as a non-root user. [`.github/workflows/ci.yml`](.github/workflows/ci.yml) lints and tests. [`.github/workflows/release.yml`](.github/workflows/release.yml) publishes the image when a GitHub release is published.
 
 ## Conventions
 
-- Read configuration only through `utils.get_env`. A missing required key raises `Exception`. Optional keys today are `POST_PATH` (default `_posts`) and `TELEGRAM_BASE_URL`.
+- Read configuration only through `utils.get_env`. A missing or blank required key raises `MissingEnvironmentVariable`. Optional keys are `POST_PATH` (default `_posts`), `TIMEZONE` (default `Asia/Tehran`), and `TELEGRAM_BASE_URL`.
 - Only the chat whose id equals `CHAT_ID` may create posts. Handler failures are reported to `DEBUG_CHAT_ID`.
-- New posts are `{POST_PATH}/YYYY-MM-DD-{slug}.md`. Front-matter `date` uses a hardcoded `+3:30` offset. A second post with the same date and slug fails in `repo.create_file`.
-- Tag front matter splits the tag segment on `-` (`tags.split("-")`). That does not match the comma-separated example in the README. Change it only when the task is the tag format.
+- New posts are `{POST_PATH}/YYYY-MM-DD-{slug}.md`. The front-matter `date` uses `TIMEZONE`. A second post with the same date and slug raises `PostExistsError`.
+- Tag front matter splits the tag segment on commas and quotes each tag.
 - Never commit `.env` or tokens (`TELEGRAM_TOKEN`, `GITHUB_TOKEN`).
 - Keep behavior changes inside `tg_blog_updater/` unless the task is packaging, Docker, or CI.
