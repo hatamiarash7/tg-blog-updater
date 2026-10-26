@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.15.1-slim AS builder
+FROM python:3.16.0a1-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -27,7 +27,7 @@ RUN poetry export \
     && poetry build --format wheel \
     && /opt/venv/bin/pip install --no-cache-dir --no-deps dist/*.whl
 
-FROM python:3.15.1-slim AS runtime
+FROM python:3.16.0a1-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
